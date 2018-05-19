@@ -45,9 +45,10 @@ class WeiboComment(object):
             if b:
                 d = b.json()
                 c_html = d['data']['html']
-                c = etree.HTML(c_html)
+                c = etree.HTML(c_html.encode('unicode_escape'))
                 for i in c.xpath('//div[@class="WB_text"]'):
-                    user, comment = i.xpath('string(.)').strip().split('：', maxsplit=1)
+                    user, comment = i.xpath('string(.)').encode('utf-8').decode('unicode_escape').strip().split('：', maxsplit=1)
+                    #print(user, comment)
                     if user == self.user:
                         print('~~~~~~~~~~%s' % (comment))
 
