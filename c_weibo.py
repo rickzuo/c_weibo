@@ -11,6 +11,11 @@ from selenium.webdriver.chrome.options import Options
 
 
 class WeiboComment(object):
+    """查看某人在某微博的评论
+        weibo_url指微博详情页的地址
+        user指所查看用户的昵称
+    """
+
     def __init__(self, weibo_url,  user):
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless")
@@ -69,6 +74,7 @@ class WeiboComment(object):
     def run(self):
         self._base()
         self.getcomments()
+
 
 if __name__ == '__main__':
     init_url = input('请输入微博链接:')
