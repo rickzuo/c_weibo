@@ -8,6 +8,7 @@ import requests
 from lxml import etree
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from db import Mysql
 
 
 class WeiboComment(object):
@@ -21,7 +22,8 @@ class WeiboComment(object):
         self.weibo_url = weibo_url
         self.cookies = {}
         self.headers = {
-            'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36',
+            'user-agent': "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/57.0.2987.133 Safari/537.36",
             'accept-encoding': 'gzip, deflate, br',
             'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8'
         }
@@ -40,6 +42,8 @@ class WeiboComment(object):
         else:
             pages = comments//20 + 1
         weibo_id = re.findall(r'"id=(\d+)&amp;filter', source)[0]
+        self.db = Mysql(weibo_id)
+        self.db.create_table()
         print(f'总共{pages}页,{comments}评论')
         for page in range(1, pages+1):
             url = f'https://weibo.com/aj/v6/comment/big?ajwvr=6&id={weibo_id}&filter=all&page={page}'
@@ -48,9 +52,9 @@ class WeiboComment(object):
     @staticmethod
     def exception_handler(request, exception):
         try:
-            return requests.get(request.url, headers=request.headers, cookies=request.cookies)
-        except:
-            print(exception, request.url)
+            return requests.get(request.url, headers=request.headers, cookies=request._cookies)
+        except Exception as e:
+            print(f"{exception}\n{request.url}\n{e}")
 
     def getcomments(self):
         tasks = (grequests.get(url, headers=self.headers, cookies=self.cookies) for url in self.urls)
@@ -63,12 +67,14 @@ class WeiboComment(object):
                 for i in c.xpath('//div[@class="WB_text"]'):
                     user, comment = i.xpath('string(.)').encode('utf-8').decode('unicode_escape').strip().split('：', maxsplit=1)
                     # print(f'{user}:{comment}')
+                    self.db.add(user, comment)
                     if user == self.user:
                         print(f'{user}:{comment}')
 
     def run(self):
         self._base()
         self.getcomments()
+        self.db.close()
 
 if __name__ == '__main__':
     init_url = input('请输入微博链接:')
