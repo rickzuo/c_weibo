@@ -1,14 +1,18 @@
 # !/usr/bin/env python3
 # coding：utf-8
 
-import time
 import re
+import time
+import logging
 import grequests
 import requests
 from lxml import etree
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from db import Mysql
+from settings import WEIBO_URL, USERNAME
+
+logger = logging.getLogger('weibo')
 
 
 class WeiboComment(object):
@@ -17,7 +21,7 @@ class WeiboComment(object):
         user指所查看用户的昵称
     """
 
-    def __init__(self, weibo_url,  user):
+    def __init__(self, weibo_url=WEIBO_URL, user=USERNAME):
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless")
         self.chrome_options.add_argument("--disable-gpu")
@@ -43,14 +47,14 @@ class WeiboComment(object):
         self.driver.close()
         comments = int(re.findall(r'<em>(\d+)<', source)[0])
         if comments % 20 == 0:
-            pages = comments//20
+            pages = comments // 20
         else:
-            pages = comments//20 + 1
+            pages = comments // 20 + 1
         weibo_id = re.findall(r'"id=(\d+)&amp;filter', source)[0]
         self.db = Mysql(weibo_id)
         self.db.create_table()
-        print(f'总共{pages}页,{comments}评论')
-        for page in range(1, pages+1):
+        logger.info(f'总共{pages}页,{comments}评论')
+        for page in range(1, pages + 1):
             url = f'https://weibo.com/aj/v6/comment/big?ajwvr=6&id={weibo_id}&filter=all&page={page}'
             self.urls.append(url)
 
@@ -59,7 +63,7 @@ class WeiboComment(object):
         try:
             return requests.get(request.url, headers=request.headers, cookies=request._cookies)
         except Exception as e:
-            print(f"{exception}\n{request.url}\n{e}")
+            logger.error(f"{exception}\n{request.url}\n{e}")
 
     def getcomments(self):
         tasks = (grequests.get(url, headers=self.headers, cookies=self.cookies) for url in self.urls)
@@ -71,19 +75,12 @@ class WeiboComment(object):
                 c = etree.HTML(c_html.encode('unicode_escape'))
                 for i in c.xpath('//div[@class="WB_text"]'):
                     user, comment = i.xpath('string(.)').encode('utf-8').decode('unicode_escape').strip().split('：', maxsplit=1)
-                    # print(f'{user}:{comment}')
+                    logger.debug(f'{user}:{comment}')
                     self.db.add(user, comment)
                     if user == self.user:
-                        print(f'{user}:{comment}')
+                        logger.info(f'{user}:{comment}')
 
     def run(self):
         self._base()
         self.getcomments()
         self.db.close()
-
-
-if __name__ == '__main__':
-    init_url = input('请输入微博链接:')
-    username = input('请输入用户名:')
-    wc = WeiboComment(init_url, username)
-    wc.run()
