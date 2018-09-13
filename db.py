@@ -5,8 +5,6 @@ import pymysql
 import logging
 from settings import HOST, USER, PASSWORD, DB
 
-logger = logging.getLogger('weibo')
-
 
 class Mysql(object):
     """for mysql"""
@@ -22,15 +20,15 @@ class Mysql(object):
         try:
             self.cursor.execute(sql)
         except Exception as e:
-            logger.error(f"failed to create table {self.t_name} with exception {e}")
+            logging.error(f"failed to create table {self.t_name} with exception {e}")
 
     def add(self, name, comment):
-        sql = f"INSERT INTO `{self.t_name}` (`name`, `comment`) VALUES ('{name}', '{comment}')"
+        sql = f'INSERT INTO `{self.t_name}` (`name`, `comment`) VALUES ("{name}", "{comment}")'
         try:
             self.cursor.execute(sql)
             self.con.commit()
         except Exception as e:
-            logger.error(f"{sql}\n{e}")
+            logging.error(f"{sql}\n{e}")
 
     def close(self):
         self.cursor.close()

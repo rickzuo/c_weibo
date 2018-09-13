@@ -5,17 +5,15 @@ import logging
 from weibo import WeiboComment
 from settings import LOG_FILE, LOG_LEVEL
 
-LEVEL = {'INFO': logging.INFO,
-         'DEBUG': logging.DEBUG,
-         'WARNING': logging.WARNING,
-         'ERROR': logging.ERROR}
-FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-logging.basicConfig(filename=LOG_FILE, format=FORMAT, level=LEVEL[LOG_LEVEL])
-logger = logging.getLogger('weibo')
-logger.info('-' * 100)
-
 
 def main():
+    _level = {'INFO': logging.INFO,
+              'DEBUG': logging.DEBUG,
+              'WARNING': logging.WARNING,
+              'ERROR': logging.ERROR}
+    _format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    logging.basicConfig(filename=LOG_FILE, format=_format, level=_level[LOG_LEVEL])
+    logging.info('-' * 100)
     wb = WeiboComment()
     wb.run()
 
