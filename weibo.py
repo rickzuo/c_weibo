@@ -7,10 +7,13 @@ import time
 import logging
 import grequests
 from lxml import etree
+from requests import Session
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from db import Mysql
 from settings import WEIBO_URL, USERNAME
+
+logger = logging.getLogger(__name__)
 
 
 class WeiboComment(object):
@@ -39,7 +42,7 @@ class WeiboComment(object):
         self.driver.get(self.weibo_url)
         time.sleep(5)
         source = self.driver.page_source
-        logging.debug(source)
+        #logging.debug(source)
         _cookies = self.driver.get_cookies()
         for cookie in _cookies:
             self.cookies[cookie['name']] = cookie['value']
@@ -51,39 +54,41 @@ class WeiboComment(object):
             else:
                 pages = comments // 20 + 1
         except IndexError as e:
-            logging.error(f"no comments count\n{source}")
+            logger.error(f"no comments count\n{source}")
             sys.exit(1)
         try:
             weibo_id = re.findall(r'"id=(\d+)&amp;filter', source)[0]
         except IndexError as e:
-            logging.error(f"no weibo id\n{source}")
+            logger.error(f"no weibo id\n{source}")
             sys.exit(2)
         self.db = Mysql(weibo_id)
         self.db.create_table()
-        logging.info(f'总共{pages}页,{comments}评论')
+        logger.info(f'总共{pages}页,{comments}评论')
         for page in range(1, pages + 1):
             url = f'https://weibo.com/aj/v6/comment/big?ajwvr=6&id={weibo_id}&filter=all&page={page}'
             self.urls.append(url)
 
     @staticmethod
     def exception_handler(request, exception):
-        logging.error(f"{exception}\n{request.url}")
+        logger.error(f"{exception}\n{request.url}")
         return None
 
     def getcomments(self):
-        tasks = (grequests.get(url, headers=self.headers, cookies=self.cookies, timeout=3) for url in self.urls)
+        ss = Session()
+        tasks = (grequests.get(url, session=ss, headers=self.headers, cookies=self.cookies, timeout=3) for url in self.urls)
         bs = grequests.map(tasks, size=10, exception_handler=self.exception_handler, gtimeout=3)
         for b in bs:
             if b:
                 d = b.json()
                 c_html = d['data']['html']
                 c = etree.HTML(c_html.encode('unicode_escape'))
-                for i in c.xpath('//div[@class="WB_text"]'):
+                uc = c.xpath('//div[@class="WB_text"]')
+                for i in uc:
                     user, comment = i.xpath('string(.)').encode('utf-8').decode('unicode_escape').strip().split('：', maxsplit=1)
-                    logging.debug(f'{user}:{comment}')
+                    logger.debug(f'{bs.index(b) * 20 + uc.index(i) + 1}----------{user}:{comment}')
                     self.db.add(user, comment)
                     if user == self.user:
-                        logging.info(f'{user}:{comment}')
+                        logger.info(f'{user}:{comment}')
 
     def run(self):
         self._base()

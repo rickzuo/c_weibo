@@ -12,8 +12,10 @@ def main():
               'WARNING': logging.WARNING,
               'ERROR': logging.ERROR}
     _format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(filename=LOG_FILE, format=_format, level=_level[LOG_LEVEL])
-    logging.info('-' * 100)
+    logging.basicConfig(filename=LOG_FILE, format=_format, level=_level[LOG_LEVEL.upper()])
+    logger = logging.getLogger(__name__)
+    handler = logging.FileHandler()
+    logger.info('-' * 100)
     wb = WeiboComment()
     wb.run()
 
