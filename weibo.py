@@ -79,13 +79,15 @@ class WeiboComment(object):
         bs = grequests.map(tasks, size=10, exception_handler=self.exception_handler, gtimeout=3)
         for b in bs:
             if b:
+                j = 1
                 d = b.json()
                 c_html = d['data']['html']
                 c = etree.HTML(c_html.encode('unicode_escape'))
                 uc = c.xpath('//div[@class="WB_text"]')
                 for i in uc:
+                    j += 1
                     user, comment = i.xpath('string(.)').encode('utf-8').decode('unicode_escape').strip().split('：', maxsplit=1)
-                    logger.debug(f'{bs.index(b) * 20 + uc.index(i) + 1}----------{user}:{comment}')
+                    logger.debug(f'{bs.index(b) * 20 + j}----------{user}:{comment}')
                     self.db.add(user, comment)
                     if user == self.user:
                         logger.info(f'{user}:{comment}')
