@@ -6,6 +6,7 @@ import sys
 import time
 import logging
 import grequests
+from random import choice
 from lxml import etree
 from requests import Session
 from selenium import webdriver
@@ -27,6 +28,11 @@ class WeiboComment(object):
         self.chrome_options.add_argument("--headless")
         self.chrome_options.add_argument("--disable-gpu")
         self.driver = webdriver.Chrome(chrome_options=self.chrome_options)
+        self.proxies = [{'https://127.0.0.1:8118'},
+                        {'https://127.0.0.1:8228'},
+                        {'https://127.0.0.1:8338'},
+                        {'https://127.0.0.1:8448'}
+                        ]
         self.urls = []
         self.user = user
         self.weibo_url = weibo_url
@@ -42,7 +48,7 @@ class WeiboComment(object):
         self.driver.get(self.weibo_url)
         time.sleep(5)
         source = self.driver.page_source
-        #logging.debug(source)
+        logging.debug(source)
         _cookies = self.driver.get_cookies()
         for cookie in _cookies:
             self.cookies[cookie['name']] = cookie['value']
@@ -75,20 +81,23 @@ class WeiboComment(object):
 
     def getcomments(self):
         ss = Session()
-        tasks = (grequests.get(url, session=ss, headers=self.headers, cookies=self.cookies, timeout=3) for url in self.urls)
-        bs = grequests.map(tasks, size=10, exception_handler=self.exception_handler, gtimeout=3)
+        tasks = (grequests.get(url, session=ss, headers=self.headers,
+                               cookies=self.cookies, timeout=5, proxies=choice(self.proxies)
+                               ) for url in self.urls)
+        bs = grequests.map(tasks, size=5, exception_handler=self.exception_handler, gtimeout=3)
         for b in bs:
+            _page = bs.index(b)
             if b:
-                j = 1
+                _offset = 1
                 d = b.json()
                 c_html = d['data']['html']
                 c = etree.HTML(c_html.encode('unicode_escape'))
                 uc = c.xpath('//div[@class="WB_text"]')
                 for i in uc:
-                    j += 1
                     user, comment = i.xpath('string(.)').encode('utf-8').decode('unicode_escape').strip().split('：', maxsplit=1)
-                    logger.debug(f'{bs.index(b) * 20 + j}----------{user}:{comment}')
-                    self.db.add(user, comment)
+                    # logger.debug(f'{bs.index(b) * 20 + j}----------{user}:{comment}')
+                    self.db.add(user, comment, page=_page, offset=_offset)
+                    _offset += 1
                     if user == self.user:
                         logger.info(f'{user}:{comment}')
 

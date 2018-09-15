@@ -12,7 +12,7 @@ class Mysql(object):
     """for mysql"""
 
     def __init__(self, weibo_id):
-        self.con = pymysql.connect(host=HOST, user=USER, password=PASSWORD, db=DB, charset='utf8mb4')
+        self.con = pymysql.connect(host=HOST, user=USER, password=PASSWORD, db=DB, charset='utf8mb4', write_timeout=2)
         self.cursor = self.con.cursor()
         self.t_name = f"w{weibo_id}"
 
@@ -25,9 +25,10 @@ class Mysql(object):
         except Exception as e:
             logger.error(f"failed to create table {self.t_name} with exception {e}")
 
-    def add(self, name, comment):
+    def add(self, name, comment, page, offset):
         _comment = pymysql.escape_string(comment)
         sql = f'INSERT INTO `{self.t_name}` (`name`, `comment`) VALUES ("{name}", "{_comment}")'
+        logger.debug(f'{page * 20 + offset}----------{name}:{_comment}')
         # noinspection PyBroadException
         try:
             self.cursor.execute(sql)
