@@ -28,10 +28,8 @@ class WeiboComment(object):
         self.chrome_options.add_argument("--headless")
         self.chrome_options.add_argument("--disable-gpu")
         self.driver = webdriver.Chrome(chrome_options=self.chrome_options)
-        self.proxies = [{'https://127.0.0.1:8118'},
-                        {'https://127.0.0.1:8228'},
-                        {'https://127.0.0.1:8338'},
-                        {'https://127.0.0.1:8448'}
+        self.proxies = [{'https': 'http://191.101.175.185:8118', 'http': 'http://191,101,175,185:8118'},
+                        None
                         ]
         self.urls = []
         self.user = user
@@ -92,10 +90,10 @@ class WeiboComment(object):
                 d = b.json()
                 c_html = d['data']['html']
                 c = etree.HTML(c_html.encode('unicode_escape'))
+                logger.debug(f'第{_page}页*********************************************************\n{c}')
                 uc = c.xpath('//div[@class="WB_text"]')
                 for i in uc:
                     user, comment = i.xpath('string(.)').encode('utf-8').decode('unicode_escape').strip().split('：', maxsplit=1)
-                    # logger.debug(f'{bs.index(b) * 20 + j}----------{user}:{comment}')
                     self.db.add(user, comment, page=_page, offset=_offset)
                     _offset += 1
                     if user == self.user:

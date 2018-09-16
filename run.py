@@ -11,7 +11,7 @@ _level = {'INFO': logging.INFO,
           'ERROR': logging.ERROR
           }
 _format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-handler = logging.FileHandler(LOG_FILE)
+handler = logging.FileHandler(LOG_FILE, encoding='utf-8')
 handler.setLevel(_level[LOG_LEVEL.upper()])
 formatter = logging.Formatter(_format)
 handler.setFormatter(formatter)
