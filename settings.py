@@ -7,7 +7,7 @@ PASSWORD = '123456'
 DB = 'weibo'
 
 # For weibo
-WEIBO_URL = 'https://weibo.com/1265020392/Gwt7ZBtMz?filter=hot&root_comment_id=0&type=comment'
+WEIBO_URL = 'https://weibo.com/1265020392/Gvpm1EU7O?filter=hot&root_comment_id=0&type=comment'
 USERNAME = 'Archean_w'
 HEADERS = {
             'user-agent': "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -23,8 +23,8 @@ TIMEOUT = 5
 
 # For log
 if sys.platform == 'win32':
-    LOG_FILE = 'C:/Users/Archean/log/weibo.log'
+    LOG_FILE = 'D:/Users/T00006732/log/weibo.log'
 else:
     LOG_FILE = '/Users/archean/log/weibo.log'
 
-LOG_LEVEL = 'debug'
+LOG_LEVEL = 'info'

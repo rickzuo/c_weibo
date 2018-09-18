@@ -89,12 +89,14 @@ class WeiboComment(object):
                            gtimeout=3)
         for b in bs:
             _page = bs.index(b)
-            if b:
+            if b.status_code == 200:
+                logger.info(f"{b.url} --- {b.status_code}")
                 _offset = 0
                 d = b.json()
                 c_html = d['data']['html']
                 c = etree.HTML(c_html.encode('unicode_escape'))
-                logger.info(f'第{_page + 1}页*********************************************************\n{c_html}')
+                logger.info(f'第{_page + 1}页*********************************************************')
+                logger.debug(f'{c_html}')
                 uc = c.xpath('//div[@class="WB_text"]')
                 dt = c.xpath('//div[@class="WB_from S_txt2"]')
                 for i, j in zip(uc, dt):
@@ -107,6 +109,8 @@ class WeiboComment(object):
                     if user == self.user:
                         logger.info(f'{user}:{comment}')
                 logger.info(f"该页有{_offset}条评论")
+            else:
+                logger.error(f"{b.url} --- {b.status_code}")
 
     def run(self):
         self._base()
