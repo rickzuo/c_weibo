@@ -24,7 +24,7 @@ class Mysql(object):
             with self.con.cursor() as cursor:
                 cursor.execute(sql)
         except Exception as e:
-            logger.error(f"failed to create table {self.t_name} with exception {e}")
+            logger.warning(f"failed to create table {self.t_name} with exception {e}")
         self.con.commit()
 
     def add(self, name, comment, c_time, page, offset):
