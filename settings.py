@@ -1,4 +1,10 @@
+import os
 import sys
+
+HOME = os.path.expanduser('~')
+DATA_DIR = os.path.join(HOME, 'weibo')
+if not os.path.exists(DATA_DIR):
+    os.mkdir(DATA_DIR)
 
 # For mysql
 HOST = '127.0.0.1'
@@ -20,11 +26,8 @@ PROXIES = [
             None
         ]
 TIMEOUT = 5
-if sys.platform == 'win32':
-    COOKIES = 'D:/Users/T00006732/log/weibo.cks'
-else:
-    COOKIES = '/Users/archean/log/weibo.cks'
+COOKIES = os.path.join(DATA_DIR, 'weibo.cks')
 
 # For log
-LOG_FILE = COOKIES.replace('cks', 'log')
+LOG_FILE = os.path.join(DATA_DIR, 'weibo.log')
 LOG_LEVEL = 'info'

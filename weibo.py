@@ -88,7 +88,7 @@ class WeiboComment(object):
         self.db.create_table(self.weibo_url)
         logger.info(f'总共{pages}页,{comments}评论')
         for page in range(1, pages + 1):
-            url = f'https://weibo.com/aj/v6/comment/big?ajwvr=6&id={weibo_id}&filter=all&page={page}'
+            url = f'https://www.weibo.com/aj/v6/comment/big?ajwvr=6&id={weibo_id}&filter=all&page={page}'
             self.urls.append(url)
 
     @staticmethod
@@ -120,7 +120,7 @@ class WeiboComment(object):
                     d = b.json()
                     c_html = d['data']['html']
                     c = etree.HTML(c_html.encode('unicode_escape'))
-                    logger.info(f'第{_page + 1}页*********************************************************')
+                    logger.info(f'第{_page + 1}页')
                     logger.debug(f'{c_html}')
                     uc = c.xpath('//div[@class="WB_text"]')
                     dt = c.xpath('//div[@class="WB_from S_txt2"]')
