@@ -1,5 +1,4 @@
 import os
-import sys
 
 HOME = os.path.expanduser('~')
 DATA_DIR = os.path.join(HOME, 'weibo')
@@ -7,6 +6,7 @@ if not os.path.exists(DATA_DIR):
     os.mkdir(DATA_DIR)
 
 # For mysql
+MYSQL = True
 HOST = '127.0.0.1'
 USER = 'root'
 PASSWORD = '123456'

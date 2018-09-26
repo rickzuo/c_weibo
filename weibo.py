@@ -12,11 +12,10 @@ import grequests
 import requests
 from random import choice
 from lxml import etree
-from requests import Session
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from db import Mysql
-from settings import WEIBO_URL, USERNAME, PROXIES, TIMEOUT, HEADERS, COOKIES
+from settings import WEIBO_URL, USERNAME, PROXIES, TIMEOUT, HEADERS, COOKIES, MYSQL
 
 logger = logging.getLogger(__name__)
 today = datetime.datetime.now()
@@ -76,16 +75,17 @@ class WeiboComment(object):
                 pages = comments // 20
             else:
                 pages = comments // 20 + 1
-        except IndexError as e:
+        except IndexError:
             logger.error(f"no comments count\n{self.source}")
             sys.exit(1)
         try:
             weibo_id = re.findall(r'omid=\\"(\d+)', self.source)[0]
-        except IndexError as e:
+        except IndexError:
             logger.error(f"no weibo id\n{self.source}")
             sys.exit(2)
-        self.db = Mysql(weibo_id)
-        self.db.create_table(self.weibo_url)
+        if MYSQL:
+            self.db = Mysql(weibo_id)
+            self.db.create_table(self.weibo_url)
         logger.info(f'总共{pages}页,{comments}评论')
         for page in range(1, pages + 1):
             url = f'https://www.weibo.com/aj/v6/comment/big?ajwvr=6&id={weibo_id}&filter=all&page={page}'
@@ -99,7 +99,7 @@ class WeiboComment(object):
     def getcomments(self, urls=None):
         if urls:
             self.urls = urls
-        ss = Session()
+        ss = requests.Session()
         tasks = (grequests.get(url,
                                session=ss,
                                headers=self.headers,
@@ -113,32 +113,35 @@ class WeiboComment(object):
                            gtimeout=3)
         for b in bs:
             _page = bs.index(b)
-            if b:
-                if b.status_code == 200:
-                    logger.info(f"{b.url} --- {b.status_code}")
-                    _offset = 0
-                    d = b.json()
-                    c_html = d['data']['html']
-                    c = etree.HTML(c_html.encode('unicode_escape'))
-                    logger.info(f'第{_page + 1}页')
-                    logger.debug(f'{c_html}')
-                    uc = c.xpath('//div[@class="WB_text"]')
-                    dt = c.xpath('//div[@class="WB_from S_txt2"]')
-                    for i, j in zip(uc, dt):
-                        _offset += 1
-                        user, comment = i.xpath('string(.)').encode('utf-8').decode('unicode_escape').strip().split('：', 1)
-                        c_time = j.xpath('string(.)').encode('utf-8').decode('unicode_escape').strip()
-                        if '今天' in c_time:
-                            c_time = c_time.replace('今天', self.today)
+            if not b:
+                continue
+            if b.status_code == 200:
+                logger.info(f"{b.url} --- {b.status_code}")
+                _offset = 0
+                d = b.json()
+                c_html = d['data']['html']
+                c = etree.HTML(c_html.encode('unicode_escape'))
+                logger.info(f'第{_page + 1}页')
+                logger.debug(f'{c_html}')
+                uc = c.xpath('//div[@class="WB_text"]')
+                dt = c.xpath('//div[@class="WB_from S_txt2"]')
+                for i, j in zip(uc, dt):
+                    _offset += 1
+                    user, comment = i.xpath('string(.)').encode('utf-8').decode('unicode_escape').strip().split('：', 1)
+                    c_time = j.xpath('string(.)').encode('utf-8').decode('unicode_escape').strip()
+                    if '今天' in c_time:
+                        c_time = c_time.replace('今天', self.today)
+                    if MYSQL:
                         self.db.add(user, comment, c_time, page=_page, offset=_offset)
-                        if user == self.user:
-                            logger.info(f'{user}:{comment}')
-                    logger.info(f"该页有{_offset}条评论")
-                else:
-                    logger.error(f"{b.url} --- {b.status_code}")
+                    if user == self.user:
+                        logger.info(f'{user}:{comment}')
+                logger.info(f"该页有{_offset}条评论")
+            else:
+                logger.error(f"{b.url} --- {b.status_code}")
 
     def run(self):
         self._cookies()
         self._base()
         self.getcomments()
-        self.db.close()
+        if MYSQL:
+            self.db.close()
