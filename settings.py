@@ -22,7 +22,8 @@ HEADERS = {
             'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8'
         }
 PROXIES = [
-            {'https': 'http://191.101.175.185:8118', 'http': 'http://191,101,175,185:8118'},
+            {'https': 'http://191.101.175.185:8118', 'http': 'http://191.101.175.185:8118'},
+            {'https': 'http://118.25.237.178:808', 'http': 'http://118.25.237.178:808'},
             None
         ]
 TIMEOUT = 5
