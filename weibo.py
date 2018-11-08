@@ -80,7 +80,8 @@ class WeiboComment(object):
             logger.error(f"no comments count\n{self.source}")
             sys.exit(1)
         try:
-            weibo_id = re.findall(r'omid=\\"(\d+)', self.source)[0]
+            weibo_id = re.findall(r'%3D(\d+)&title', self.source)[0]
+            logging.info(f"Weibo_id:{weibo_id}")
         except IndexError as e:
             logger.error(f"no weibo id\n{self.source}")
             sys.exit(2)

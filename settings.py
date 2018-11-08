@@ -7,7 +7,7 @@ PASSWORD = '123456'
 DB = 'weibo'
 
 # For weibo
-WEIBO_URL = 'https://weibo.com/1265020392/GAJt8tfqu?filter=hot&root_comment_id=0&type=comment'
+WEIBO_URL = 'https://weibo.com/1265020392/GFiATsp67?filter=hot&root_comment_id=0&type=comment'
 USERNAME = 'Archean_w'
 HEADERS = {
             'user-agent': "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -16,7 +16,7 @@ HEADERS = {
             'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8'
         }
 PROXIES = [
-            {'https': 'http://191.101.175.185:8118', 'http': 'http://191,101,175,185:8118'},
+            # {'https': 'http://191.101.175.185:8118', 'http': 'http://191,101,175,185:8118'},
             None
         ]
 TIMEOUT = 5
