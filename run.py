@@ -21,7 +21,7 @@ logger = logging.getLogger('root')
 
 def main():
 
-    logger.info('-' * 150)
+    logger.info('=' * 150)
     wb = WeiboComment()
     wb.run()
 
